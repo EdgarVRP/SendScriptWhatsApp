@@ -1,25 +1,38 @@
 async function enviarScript(scriptText){
 	const lines = scriptText.split(/[\n\t]+/).map(line => line.trim()).filter(line => line);
-	main = document.querySelector("#main"),
-	textarea = main.querySelector(`div[contenteditable="true"]`)
-	
-	if(!textarea) throw new Error("Não há uma conversa aberta")
-	
-	for(const line of lines){
-		console.log(line)
-	
-		textarea.focus();
-		document.execCommand('insertText', false, line);
-		textarea.dispatchEvent(new Event('change', {bubbles: true}));
-	
-		setTimeout(() => {
-			(main.querySelector(`[data-testid="send"]`) || main.querySelector(`[data-icon="send"]`)).click();
-		}, 100);
-		
-		if(lines.indexOf(line) !== lines.length - 1) await new Promise(resolve => setTimeout(resolve, 250));
-	}
-	
-	return lines.length;
+    
+    // Selectores actualizados
+    const main = document.querySelector("#main") || document.querySelector(".two");
+    if(!main) throw new Error("No se puede encontrar el panel de chat principal");
+    
+    const textarea = main.querySelector(`div[contenteditable="true"]`) || 
+                    main.querySelector(`[contenteditable="true"][data-tab="10"]`);
+    
+    if(!textarea) throw new Error("No hay una conversación abierta o no se encuentra el área de texto");
+    
+    for(const line of lines){
+        console.log(line);
+    
+        textarea.focus();
+        document.execCommand('insertText', false, line);
+        textarea.dispatchEvent(new Event('change', {bubbles: true}));
+    
+        setTimeout(() => {
+            const sendButton = main.querySelector(`button[aria-label="Enviar"]`) || 
+                             main.querySelector(`span[data-icon="send"]`) || 
+                             main.querySelector(`[data-testid="send"]`);
+            
+            if(!sendButton) {
+                console.error("No se encontró el botón de enviar");
+                return;
+            }
+            sendButton.click();
+        }, 100);
+        
+        if(lines.indexOf(line) !== lines.length - 1) await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    
+    return lines.length;
 }
 
 enviarScript(`
